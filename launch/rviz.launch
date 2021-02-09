@@ -1,0 +1,5 @@
+<launch>
+    <!-- Turtlesim Node-->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find my_simulations)/includes/rviz_config/auto_rviz.rviz" />
+
+</launch>

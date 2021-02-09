@@ -1,0 +1,9 @@
+time timestamp
+uint8 stateFlag
+float64 goal_posx
+float64 goal_posy
+float64[] start_pos
+float64[] mapOffset
+float64 goalTheta
+float64[] path_posx
+float64[] path_posy

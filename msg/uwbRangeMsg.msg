@@ -1,0 +1,9 @@
+time timestamp
+float64[] ranges
+float64[] r_cov
+int64[] ids
+int64[] los
+uint8 count
+int64 ap
+int64 cn
+uint8 state

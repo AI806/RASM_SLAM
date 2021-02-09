@@ -1,0 +1,5 @@
+<launch>
+    <!-- Turtlesim Node-->
+    <node pkg="rosbag" type="play" name="laerbag" args="/home/guanmy/bagfiles/corridor.bag" output="screen" />
+
+</launch>

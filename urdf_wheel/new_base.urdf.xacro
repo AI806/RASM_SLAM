@@ -1,0 +1,248 @@
+<?xml version="1.0"?>
+
+<robot xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+       xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+       xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+       xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find my_simulations)/urdf_wheel/wheelchair.gazebo.xacro" />
+  <xacro:include filename="$(find my_simulations)/urdf_wheel/wheelchair.transmission.xacro" />
+  <xacro:include filename="$(find my_simulations)/urdf_wheel/wheelchair.constants.xacro" />
+  <!--xacro:include filename="$(find my_simulations)/urdf_wheel/wheelchair.kinect.xacro" /-->
+  <xacro:include filename="$(find my_simulations)/urdf_wheel/wheelchair.hokuyo.xacro" />
+  <xacro:include filename="$(find my_simulations)/urdf_wheel/wheelchair.uwb.xacro" />
+
+  <xacro:property name="PI" value="3.1415926535897931" />
+
+
+  <xacro:property name="front_wheel_base_y" value="0.27" />
+  <xacro:property name="caster_wheel_radius" value="0.1" />
+  <xacro:property name="caster_wheel_hub_y" value="0.0" />
+  <xacro:property name="caster_wheel_hub_x" value="-0.06" />
+  <xacro:property name="caster_hub_base_x" value="-0.58" />
+  <xacro:property name="caster_hub_base_y" value="0.19" />
+  <xacro:property name="caster_hub_base_z" value="-0.07" />
+  <xacro:property name="front_wheel_radius2" value="0.17" />
+
+  <!--wheelchair_hokuyo parent="base_link" roll="0.0" pitch="-0.013" yaw=" 0.0" x="0.22" y="0.0" z="0.1" /-->
+  <wheelchair_hokuyo parent="base_link" roll="0.0" pitch="-0.013" yaw="0.0" x="0.22" y="0.0" z="0.1" />
+  <wheelchair_uwb parent="base_link" roll="0.0" pitch="0.0" yaw=" 0.0" x="-0.74" y="0.0" z="1.08" />
+
+  <!-- Macro for front wheel only -->
+  <xacro:macro name="front_wheel" params="suffix parent reflect" >
+
+    <joint name="${parent}_${suffix}_front_wheel_joint" type="continuous">
+      <axis xyz="0 1 0" />
+      <limit effort="100" velocity="100" />
+      <dynamics damping="0.0" friction="0.05" />
+      <origin xyz="0 ${reflect*front_wheel_base_y} 0" rpy="0 0 0" />
+      <parent link="${parent}_link" />
+      <child link="${suffix}_front_wheel_link" />
+    </joint>
+
+    <link name="${suffix}_front_wheel_link" >
+      <xacro:front_wheel_inertia />
+      <visual>
+        <!-- <origin xyz="0 0 0" rpy="${PI/2} 0 0" /> -->
+        <geometry>
+
+          <!-- <cylinder length="0.07" radius="${front_wheel_radius}" /> -->
+          <mesh filename="package://my_simulations/meshes/front_wheel.dae" />
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${PI/2} 0 0" />
+        <geometry>
+          <cylinder length="0.07" radius="${front_wheel_radius2}" />
+          <!-- <mesh filename="package://nuric_wheelchair_model_02/meshes/front_wheel.dae" /> -->
+        </geometry>
+      </collision>
+    </link>
+
+    <xacro:front_wheel_gazebo suffix="${suffix}" />
+    <xacro:front_wheel_transmission parent="${parent}" suffix="${suffix}" reflect="${reflect}" />
+
+  </xacro:macro>
+
+  <!-- Macro for caster wheel only -->
+  <xacro:macro name="caster_wheel" params="suffix parent reflect" >
+    <joint name="${parent}_${suffix}_caster_wheel_joint" type="continuous" >
+      <axis xyz="0 1 0" />
+      <!-- <limit effort="1000" velocity="1000" /> -->
+      <dynamics damping="0.0" friction="0.02" />
+      <origin xyz="${reflect*caster_wheel_hub_x} 0 0" rpy="0 0 0" />
+      <parent link="${parent}_link" />
+      <child link="${suffix}_caster_wheel_link" />
+    </joint>
+
+    <link name="${suffix}_caster_wheel_link" >
+      <xacro:caster_wheel_inertia />
+      <visual>
+        <!-- <origin xyz="0 0 0" rpy="${PI/2} 0 0" /> -->
+        <geometry>
+          <!-- <cylinder length="0.038" radius="${caster_wheel_radius}" /> -->
+          <mesh filename="package://my_simulations/meshes/caster_wheel.dae" />
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${PI/2} 0 0" />
+        <geometry>
+          <cylinder length="0.038" radius="${caster_wheel_radius}" />
+          <!-- <mesh filename="package://nuric_wheelchair_model_02/meshes/caster_wheel.dae" /> -->
+         </geometry>
+      </collision>
+    </link>
+
+    <xacro:caster_wheel_gazebo suffix="${suffix}" />
+
+  </xacro:macro>
+
+
+  <!-- Macro for wheelchair_base (includes front & caster wheels and wheelchair body) -->
+  <xacro:macro name="wheelchair_base" >
+
+    <link name="base_footprint" >
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.01 0.01 0.01" />
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="base_footprint_joint" type="fixed" >
+      <origin xyz="0 0 ${front_wheel_radius2}" rpy="0 0 0" />
+      <child link="base_link" />
+      <parent link="base_footprint" />
+    </joint>
+
+    <link name="base_link" >
+      <xacro:wheelchair_base_inertia />
+      <visual>
+        <geometry>
+          <mesh filename="package://my_simulations/meshes/wheelchair_base.dae" />
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://my_simulations/meshes/wheelchair_base.dae" />
+        </geometry>
+      </collision>
+    </link>
+
+    <xacro:front_wheel suffix="left" parent="base" reflect="1" />
+    <xacro:front_wheel suffix="right" parent="base" reflect="-1" />
+
+    <joint name="base_left_caster_hub_joint" type="continuous" >
+        <axis xyz="0 0 1" />
+        <!-- <limit lower="${PI}" upper="${-1*PI}" effort="0.0" velocity="0.0" /> -->
+        <dynamics damping="0.0" friction="0.0" />
+        <origin xyz="${caster_hub_base_x} ${caster_hub_base_y} ${caster_hub_base_z}"
+                rpy="0 0 0" />
+        <parent link="base_link"/>
+        <child link="left_caster_hub_link" />
+    </joint>
+
+    <link name="left_caster_hub_link" value="left" >
+        <xacro:caster_hub_inertia lr="1"/>
+        <visual>
+            <geometry>
+            <mesh filename="package://my_simulations/meshes/caster_hub_left.dae" />
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+            <mesh filename="package://my_simulations/meshes/caster_hub_left.dae" />
+            </geometry>
+        </collision>
+    </link>
+
+    <xacro:caster_hub_gazebo suffix="left" />
+
+    <joint name="left_caster_hub_left_caster_wheel_joint" type="continuous" >
+        <axis xyz="0 1 0" />
+        <dynamics damping="0.0" friction="0.02" />
+        <origin xyz="${1*caster_wheel_hub_x} 0 0" rpy="0 0 0" />
+        <parent link="left_caster_hub_link" />
+        <child link="left_caster_wheel_link" />
+    </joint>
+
+    <link name="left_caster_wheel_link" >
+        <xacro:caster_wheel_inertia />
+        <visual>
+            <!-- <origin xyz="0 0 0" rpy="${PI/2} 0 0" /> -->
+            <geometry>
+            <!-- <cylinder length="0.038" radius="${caster_wheel_radius}" /> -->
+            <mesh filename="package://my_simulations/meshes/caster_wheel.dae" />
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0" />
+            <geometry>
+            <cylinder length="0.038" radius="${caster_wheel_radius}" />
+            <!-- <mesh filename="package://nuric_wheelchair_model_02/meshes/caster_wheel.dae" /> -->
+            </geometry>
+        </collision>
+    </link>
+
+    <xacro:caster_wheel_gazebo suffix="left" />
+    
+    <joint name="base_right_caster_hub_joint" type="continuous" >
+        <axis xyz="0 0 1" />
+        <dynamics damping="0.0" friction="0.0" />
+        <origin xyz="${caster_hub_base_x} ${-caster_hub_base_y} ${caster_hub_base_z}"
+            rpy="0 0 ${PI}" />
+        <parent link="base_link"/>
+        <child link="right_caster_hub_link" />
+    </joint>
+
+    <link name="right_caster_hub_link" value="right" >
+        <xacro:caster_hub_inertia lr="-1"/>
+        <visual>
+            <geometry>
+            <mesh filename="package://my_simulations/meshes/caster_hub_right.dae" />
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+            <mesh filename="package://my_simulations/meshes/caster_hub_right.dae" />
+            </geometry>
+        </collision>
+    </link>
+
+    <xacro:caster_hub_gazebo suffix="right" />
+
+    <joint name="right_caster_hub_right_caster_wheel_joint" type="continuous" >
+        <axis xyz="0 1 0" />
+        <dynamics damping="0.0" friction="0.02" />
+        <origin xyz="${-1*caster_wheel_hub_x} 0 0"
+                rpy="0 0 0" />
+        <parent link="right_caster_hub_link" />
+        <child link="right_caster_wheel_link" />
+    </joint>
+
+    <link name="right_caster_wheel_link" >
+        <xacro:caster_wheel_inertia />
+        <visual>
+            <geometry>
+                <mesh filename="package://my_simulations/meshes/caster_wheel.dae" />
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0" />
+            <geometry>
+                <cylinder length="0.038" radius="${caster_wheel_radius}" />
+            </geometry>
+        </collision>
+    </link>
+
+    <xacro:caster_wheel_gazebo suffix="right" />
+
+    <xacro:wheelchair_base_gazebo diameter="${2*front_wheel_radius2}" separation="${2*front_wheel_base_y}" />
+
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<launch>
+
+	<arg name="X" default="0" />
+	<arg name="Y" default="0" />
+	<arg name="yaw" default="0" />
+	<arg name="model" default="$(find my_simulations)/urdf_wheel/wheelchair.urdf.xacro" />
+	<!--param command="$(find xacro)/xacro.py $(arg model)" name="robot_description"/-->
+	<param command="$(find xacro)/xacro $(arg model)" name="robot_description"/>
+
+	<!-- push robot_description to factory and spawn robot in gazebo -->
+  	<node name="spawn_robot" pkg="gazebo_ros" type="spawn_model"
+          args="-x $(arg X) -y $(arg Y) -Y $(arg yaw) -param robot_description
+                -unpause
+                -urdf
+                -model robot_model"
+          respawn="false" output="screen" />
+
+	<!-- start robot state publisher -->
+  	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" respawn="false" output="screen" />
+
+
+	<!--param name="use_gui" value="false"/-->
+	<!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" /> -->
+
+
+
+</launch>

@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot name="sensor_uwb"
+  xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+  xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+  xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+  xmlns:xacro="http://ros.org/wiki/xacro">
+
+ <xacro:macro name="wheelchair_uwb" params="parent roll pitch yaw x y z">
+  <joint name="uwb_sensor_joint" type="fixed">
+    <!--axis xyz="0 0 1" /-->
+    <origin xyz="${x} ${y} ${z}" rpy="${roll} ${pitch} ${yaw}"/>
+    <!--origin xyz="0.22 0 0.1" rpy="0 -0 0"/-->
+    <parent link="base_link"/>
+    <child link="uwb_joint"/>
+  </joint>
+
+  <link name="uwb_joint">
+      <!--collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+      </collision-->
+      <inertial>
+        <mass value="1e-5" />
+        <origin xyz="0 0 1" rpy="0 0 0"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+      </inertial>
+  </link>
+
+  <gazebo reference="uwb_joint">
+    <sensor type="ray" name="uwb_sensor">
+      <always_on>true</always_on>
+      <plugin name="gazebo_uwb_plugin" filename="libgazebo_uwb_plugin.so">
+        <robotNamespace>/uwb</robotNamespace>
+        <topicNamePub>UWB_data</topicNamePub>
+        <topicNameSub>/gazebo/model_states</topicNameSub>
+        <worldName>simulate_indoor</worldName>
+        <updateRateHZ>20</updateRateHZ>
+        <gaussianNoise>0.1</gaussianNoise>
+        <robotName>robot_model</robotName>
+        <leftWheelLink>left_front_wheel_link</leftWheelLink>
+        <rightWheelLink>right_front_wheel_link</rightWheelLink>
+        <nodePrefix>UWB_</nodePrefix>
+        <maxUWBNum>20</maxUWBNum>
+        <xOffset>-0.78</xOffset>
+        <yOffset>0</yOffset>
+        <baselineLen>1.02</baselineLen>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+ </xacro:macro>
+  </robot>
